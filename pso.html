@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Swarm Optimization (PSO) - Visualisasi Lengkap</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .controls h3 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .control-item label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .control-item input {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .control-item input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .results {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #28a745;
+        }
+
+        .results h3 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .result-item strong {
+            color: #495057;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .chart-container h4 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #495057;
+            font-size: 1.2em;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .status.running {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .iteration-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        @media (max-width: 768px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Particle Swarm Optimization (PSO)</h1>
+            <p>Visualisasi Lengkap Algoritma Optimisasi f(x) = x²</p>
+        </div>
+
+        <div class="content">
+            <!-- Controls -->
+            <div class="controls">
+                <h3>⚙️ Parameter Konfigurasi</h3>
+                <div class="control-group">
+                    <div class="control-item">
+                        <label for="numParticles">Jumlah Partikel:</label>
+                        <input type="number" id="numParticles" value="10" min="5" max="50">
+                    </div>
+                    <div class="control-item">
+                        <label for="maxIterations">Iterasi Maksimum:</label>
+                        <input type="number" id="maxIterations" value="50" min="10" max="200">
+                    </div>
+                    <div class="control-item">
+                        <label for="inertia">Inertia (w):</label>
+                        <input type="number" id="inertia" value="0.5" min="0.1" max="1" step="0.1">
+                    </div>
+                    <div class="control-item">
+                        <label for="c1">Koefisien Kognitif (c1):</label>
+                        <input type="number" id="c1" value="1.5" min="0.5" max="3" step="0.1">
+                    </div>
+                    <div class="control-item">
+                        <label for="c2">Koefisien Sosial (c2):</label>
+                        <input type="number" id="c2" value="1.5" min="0.5" max="3" step="0.1">
+                    </div>
+                    <div class="control-item">
+                        <label for="speed">Kecepatan Animasi (ms):</label>
+                        <input type="number" id="speed" value="100" min="50" max="1000" step="50">
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="startOptimization()">🚀 Mulai Optimisasi</button>
+                    <button class="btn btn-secondary" onclick="pauseOptimization()">⏸️ Pause</button>
+                    <button class="btn btn-success" onclick="resetOptimization()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div id="status" class="status" style="display: none;"></div>
+            <div id="iterationInfo" class="iteration-info" style="display: none;"></div>
+
+            <!-- Results -->
+            <div id="results" class="results" style="display: none;">
+                <h3>📊 Hasil Optimisasi</h3>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <strong>Nilai Minimum:</strong> <span id="bestValue">-</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Posisi X Terbaik:</strong> <span id="bestPosition">-</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Iterasi Selesai:</strong> <span id="completedIterations">-</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Error dari Optimal:</strong> <span id="error">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts">
+                <div class="chart-container">
+                    <h4>📈 Konvergensi Nilai Terbaik</h4>
+                    <canvas id="convergenceChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h4>🎯 Posisi Partikel Real-time</h4>
+                    <canvas id="particleChart"></canvas>
+                </div>
+                <div class="chart-container full-width">
+                    <h4>🌊 Fungsi Objektif f(x) = x² dan Evolusi Partikel</h4>
+                    <canvas id="objectiveChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PSO {
+            constructor(config) {
+                this.numParticles = config.numParticles || 10;
+                this.maxIterations = config.maxIterations || 50;
+                this.w = config.w || 0.5;
+                this.c1 = config.c1 || 1.5;
+                this.c2 = config.c2 || 1.5;
+                this.bounds = [-10, 10];
+                
+                this.particles = [];
+                this.velocities = [];
+                this.personalBest = [];
+                this.personalBestValues = [];
+                this.globalBest = null;
+                this.globalBestValue = Infinity;
+                this.history = [];
+                this.currentIteration = 0;
+                this.isRunning = false;
+                this.isPaused = false;
+                
+                this.initializeParticles();
+            }
+            
+            initializeParticles() {
+                this.particles = [];
+                this.velocities = [];
+                this.personalBest = [];
+                this.personalBestValues = [];
+                
+                for (let i = 0; i < this.numParticles; i++) {
+                    const position = Math.random() * (this.bounds[1] - this.bounds[0]) + this.bounds[0];
+                    const velocity = (Math.random() - 0.5) * 2;
+                    
+                    this.particles.push(position);
+                    this.velocities.push(velocity);
+                    this.personalBest.push(position);
+                    
+                    const fitness = this.objectiveFunction(position);
+                    this.personalBestValues.push(fitness);
+                    
+                    if (fitness < this.globalBestValue) {
+                        this.globalBestValue = fitness;
+                        this.globalBest = position;
+                    }
+                }
+                
+                this.history.push({
+                    iteration: 0,
+                    globalBest: this.globalBest,
+                    globalBestValue: this.globalBestValue,
+                    particles: [...this.particles]
+                });
+            }
+            
+            objectiveFunction(x) {
+                return x * x;
+            }
+            
+            updateParticles() {
+                for (let i = 0; i < this.numParticles; i++) {
+                    const r1 = Math.random();
+                    const r2 = Math.random();
+                    
+                    // Update velocity
+                    this.velocities[i] = this.w * this.velocities[i] +
+                                       this.c1 * r1 * (this.personalBest[i] - this.particles[i]) +
+                                       this.c2 * r2 * (this.globalBest - this.particles[i]);
+                    
+                    // Update position
+                    this.particles[i] += this.velocities[i];
+                    
+                    // Apply bounds
+                    if (this.particles[i] < this.bounds[0]) this.particles[i] = this.bounds[0];
+                    if (this.particles[i] > this.bounds[1]) this.particles[i] = this.bounds[1];
+                    
+                    // Evaluate fitness
+                    const fitness = this.objectiveFunction(this.particles[i]);
+                    
+                    // Update personal best
+                    if (fitness < this.personalBestValues[i]) {
+                        this.personalBestValues[i] = fitness;
+                        this.personalBest[i] = this.particles[i];
+                        
+                        // Update global best
+                        if (fitness < this.globalBestValue) {
+                            this.globalBestValue = fitness;
+                            this.globalBest = this.particles[i];
+                        }
+                    }
+                }
+                
+                this.currentIteration++;
+                this.history.push({
+                    iteration: this.currentIteration,
+                    globalBest: this.globalBest,
+                    globalBestValue: this.globalBestValue,
+                    particles: [...this.particles]
+                });
+            }
+        }
+
+        let pso = null;
+        let animationId = null;
+        let convergenceChart = null;
+        let particleChart = null;
+        let objectiveChart = null;
+
+        // Initialize charts
+        function initializeCharts() {
+            // Convergence Chart
+            const convergenceCtx = document.getElementById('convergenceChart').getContext('2d');
+            convergenceChart = new Chart(convergenceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Nilai Terbaik',
+                        data: [],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: 'f(x) = x² (Log Scale)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Iterasi'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+
+            // Particle Chart
+            const particleCtx = document.getElementById('particleChart').getContext('2d');
+            particleChart = new Chart(particleCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Partikel',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        pointRadius: 6
+                    }, {
+                        label: 'Global Best',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 1)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        pointRadius: 10,
+                        pointStyle: 'star'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            min: -10,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'Posisi X'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'f(x) = x²'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Objective Function Chart
+            const objectiveCtx = document.getElementById('objectiveChart').getContext('2d');
+            
+            // Generate objective function curve
+            const xValues = [];
+            const yValues = [];
+            for (let x = -10; x <= 10; x += 0.1) {
+                xValues.push(x);
+                yValues.push(x * x);
+            }
+
+            objectiveChart = new Chart(objectiveCtx, {
+                type: 'line',
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        label: 'f(x) = x²',
+                        data: yValues,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }, {
+                        label: 'Partikel',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        type: 'scatter',
+                        pointRadius: 8
+                    }, {
+                        label: 'Global Best',
+                        data: [],
+                        backgroundColor: 'rgba(75, 192, 192, 1)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        type: 'scatter',
+                        pointRadius: 12,
+                        pointStyle: 'star'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            min: -10,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'x'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'f(x)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (!pso || pso.history.length === 0) return;
+
+            const currentData = pso.history[pso.history.length - 1];
+
+            // Update convergence chart
+            convergenceChart.data.labels = pso.history.map(h => h.iteration);
+            convergenceChart.data.datasets[0].data = pso.history.map(h => h.globalBestValue);
+            convergenceChart.update('none');
+
+            // Update particle chart
+            const particleData = currentData.particles.map(p => ({x: p, y: pso.objectiveFunction(p)}));
+            particleChart.data.datasets[0].data = particleData;
+            particleChart.data.datasets[1].data = [{x: currentData.globalBest, y: currentData.globalBestValue}];
+            particleChart.update('none');
+
+            // Update objective chart
+            objectiveChart.data.datasets[1].data = particleData;
+            objectiveChart.data.datasets[2].data = [{x: currentData.globalBest, y: currentData.globalBestValue}];
+            objectiveChart.update('none');
+        }
+
+        function updateResults() {
+            if (!pso) return;
+
+            document.getElementById('bestValue').textContent = pso.globalBestValue.toFixed(8);
+            document.getElementById('bestPosition').textContent = pso.globalBest.toFixed(8);
+            document.getElementById('completedIterations').textContent = pso.currentIteration;
+            document.getElementById('error').textContent = Math.abs(pso.globalBestValue).toFixed(8);
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function updateStatus(message, type = 'running') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+            statusEl.style.display = 'block';
+        }
+
+        function updateIterationInfo() {
+            if (!pso) return;
+            
+            const infoEl = document.getElementById('iterationInfo');
+            infoEl.textContent = `Iterasi: ${pso.currentIteration}/${pso.maxIterations} | Nilai Terbaik: ${pso.globalBestValue.toFixed(6)} | Posisi: ${pso.globalBest.toFixed(6)}`;
+            infoEl.style.display = 'block';
+        }
+
+        function startOptimization() {
+            if (pso && pso.isRunning && !pso.isPaused) return;
+
+            if (!pso || pso.currentIteration >= pso.maxIterations) {
+                // Create new PSO instance
+                const config = {
+                    numParticles: parseInt(document.getElementById('numParticles').value),
+                    maxIterations: parseInt(document.getElementById('maxIterations').value),
+                    w: parseFloat(document.getElementById('inertia').value),
+                    c1: parseFloat(document.getElementById('c1').value),
+                    c2: parseFloat(document.getElementById('c2').value)
+                };
+
+                pso = new PSO(config);
+                updateCharts();
+                updateResults();
+            }
+
+            pso.isRunning = true;
+            pso.isPaused = false;
+            
+            updateStatus('🔄 Optimisasi sedang berjalan...', 'running');
+
+            const speed = parseInt(document.getElementById('speed').value);
+            
+            function animate() {
+                if (!pso.isRunning || pso.isPaused) return;
+
+                if (pso.currentIteration < pso.maxIterations) {
+                    pso.updateParticles();
+                    updateCharts();
+                    updateResults();
+                    updateIterationInfo();
+                    
+                    animationId = setTimeout(animate, speed);
+                } else {
+                    pso.isRunning = false;
+                    updateStatus('✅ Optimisasi selesai!', 'completed');
+                }
+            }
+
+            animate();
+        }
+
+        function pauseOptimization() {
+            if (pso) {
+                pso.isPaused = !pso.isPaused;
+                if (pso.isPaused) {
+                    updateStatus('⏸️ Optimisasi dijeda', 'running');
+                } else {
+                    startOptimization();
+                }
+            }
+        }
+
+        function resetOptimization() {
+            if (animationId) {
+                clearTimeout(animationId);
+            }
+            
+            pso = null;
+            
+            // Clear charts
+            if (convergenceChart) {
+                convergenceChart.data.labels = [];
+                convergenceChart.data.datasets[0].data = [];
+                convergenceChart.update();
+            }
+            
+            if (particleChart) {
+                particleChart.data.datasets[0].data = [];
+                particleChart.data.datasets[1].data = [];
+                particleChart.update();
+            }
+            
+            if (objectiveChart) {
+                objectiveChart.data.datasets[1].data = [];
+                objectiveChart.data.datasets[2].data = [];
+                objectiveChart.update();
+            }
+            
+            // Hide results and status
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('iterationInfo').style.display = 'none';
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initializeCharts();
+        });
+    </script>
+</body>
+</html>
